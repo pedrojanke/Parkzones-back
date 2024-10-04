@@ -1,4 +1,4 @@
-export class CreateVehicleDto {
+export class UpdateVehicleDto {
   license_plate?: string;
   model?: string;
   color?: string;
