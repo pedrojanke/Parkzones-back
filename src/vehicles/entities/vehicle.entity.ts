@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { EntryExit } from 'src/entriesExits/entities/entry-exit.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('Vehicles')
 export class Vehicle {
@@ -13,4 +14,7 @@ export class Vehicle {
 
   @Column({ length: 256, nullable: false })
   color: string;
+
+  @OneToMany(() => EntryExit, (entryExit) => entryExit.vehicle)
+  entryExits: EntryExit[];
 }
