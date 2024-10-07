@@ -1,7 +1,22 @@
+import { Type } from 'class-transformer';
+import { IsOptional, IsString } from 'class-validator';
+
 export class UpdateEntryExitDto {
-  vehicle_id?: string;
+  @IsOptional()
+  @IsString()
+  vehicleId?: string;
+
+  @IsOptional()
+  @Type(() => Date)
   entry_time?: Date;
+
+  @IsOptional()
+  @Type(() => Date)
   exit_time?: Date;
+
+  @IsOptional()
   duration_minutes?: number;
+
+  @IsOptional()
   charged_amount?: number;
 }
