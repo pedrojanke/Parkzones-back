@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Vehicle } from 'src/vehicles/entities/vehicle.entity';
 import { Repository } from 'typeorm';
 import { CreateEntryExitDto } from './dtos/create-entry-exit.dto';
 import { UpdateEntryExitDto } from './dtos/update-entry-exit.dto';
 import { EntryExit } from './entities/entry-exit.entity';
-import { Vehicle } from 'src/vehicles/entities/vehicle.entity';
 
 @Injectable()
 export class EntriesExitsService {
@@ -87,7 +87,7 @@ export class EntriesExitsService {
     }
   }
 
-  private calculateDuration(entry_time: Date, exit_time: Date): number {
+  public calculateDuration(entry_time: Date, exit_time: Date): number {
     const duration =
       (new Date(exit_time).getTime() - new Date(entry_time).getTime()) /
       1000 /
@@ -95,9 +95,21 @@ export class EntriesExitsService {
     return Math.max(0, Math.floor(duration));
   }
 
-  private calculateChargedAmount(entry_time: Date, exit_time: Date): number {
+  public calculateChargedAmount(entry_time: Date, exit_time: Date): number {
     const duration = this.calculateDuration(entry_time, exit_time);
     const hourlyRate = 5;
     return duration > 0 ? Math.ceil(duration / 60) * hourlyRate : 0;
+  }
+
+  async findActiveByPlate(license_plate: string): Promise<EntryExit | null> {
+    const vehicleEntry = await this.entryExitRepository.findOne({
+      where: {
+        exit_time: null, // Verifica se o horário de saída é nulo
+        vehicle: { license_plate }, // Filtra pelo campo da placa do veículo
+      },
+      relations: ['vehicle'],
+    });
+
+    return vehicleEntry || null;
   }
 }
