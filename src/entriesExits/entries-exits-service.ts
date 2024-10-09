@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity';
@@ -34,7 +35,7 @@ export class EntriesExitsService {
         ? this.calculateDuration(entry_time, exit_time)
         : null,
       charged_amount: exit_time
-        ? this.calculateChargedAmount(entry_time, exit_time)
+        ? this.calculateChargedAmount(entry_time, exit_time, vehicle) // Passa o veículo completo
         : null,
     });
 
@@ -63,22 +64,27 @@ export class EntriesExitsService {
     updateEntryExitDto: UpdateEntryExitDto,
   ): Promise<EntryExit> {
     const entryExit = await this.findOne(id_movement);
-
+  
     Object.assign(entryExit, updateEntryExitDto);
-
+  
+    // Verifica se exit_time foi fornecido
     if (updateEntryExitDto.exit_time) {
       entryExit.duration_minutes = this.calculateDuration(
         entryExit.entry_time,
         updateEntryExitDto.exit_time,
       );
+  
+      // Usa a taxa do veículo para calcular o valor cobrado
       entryExit.charged_amount = this.calculateChargedAmount(
         entryExit.entry_time,
         updateEntryExitDto.exit_time,
+        entryExit.vehicle // Passa o veículo associado
       );
     }
-
+  
     return this.entryExitRepository.save(entryExit);
   }
+  
 
   async delete(id_movement: string): Promise<void> {
     const result = await this.entryExitRepository.delete(id_movement);
@@ -95,9 +101,13 @@ export class EntriesExitsService {
     return Math.max(0, Math.floor(duration));
   }
 
-  public calculateChargedAmount(entry_time: Date, exit_time: Date): number {
+  public calculateChargedAmount(
+    entry_time: Date,
+    exit_time: Date,
+    vehicle: Vehicle,
+  ): number {
     const duration = this.calculateDuration(entry_time, exit_time);
-    const hourlyRate = 5;
+    const hourlyRate = vehicle.rate.hourly_rate; // Usa a taxa do veículo
     return duration > 0 ? Math.ceil(duration / 60) * hourlyRate : 0;
   }
 

@@ -1,5 +1,13 @@
+/* eslint-disable prettier/prettier */
 import { EntryExit } from 'src/entriesExits/entities/entry-exit.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Rate } from 'src/rates/entities/rate.entity'; // Importe Rate
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('Vehicles')
 export class Vehicle {
@@ -14,6 +22,9 @@ export class Vehicle {
 
   @Column({ length: 256, nullable: false })
   color: string;
+
+  @ManyToOne(() => Rate, { eager: true }) // Adiciona a relação com Rate
+  rate: Rate; // Campo que referenciará a taxa
 
   @OneToMany(() => EntryExit, (entryExit) => entryExit.vehicle)
   entryExits: EntryExit[];

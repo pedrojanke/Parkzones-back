@@ -1,5 +1,7 @@
+/* eslint-disable prettier/prettier */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Rate } from 'src/rates/entities/rate.entity';
 import { Repository } from 'typeorm';
 import { CreateVehicleDto } from './dtos/create-vehicle.dto';
 import { UpdateVehicleDto } from './dtos/update-vehicle.dto';
@@ -10,10 +12,27 @@ export class VehiclesService {
   constructor(
     @InjectRepository(Vehicle)
     private readonly vehicleRepository: Repository<Vehicle>,
+
+    @InjectRepository(Rate)
+    private readonly rateRepository: Repository<Rate>,
   ) {}
 
   async create(createVehicleDto: CreateVehicleDto): Promise<Vehicle> {
-    const vehicle = this.vehicleRepository.create(createVehicleDto);
+    const rate = await this.rateRepository.findOne({
+      where: { rate_id: createVehicleDto.rate_id },
+    });
+
+    if (!rate) {
+      throw new NotFoundException(
+        `Rate with ID ${createVehicleDto.rate_id} not found`,
+      );
+    }
+
+    const vehicle = this.vehicleRepository.create({
+      ...createVehicleDto,
+      rate, // Associa a taxa ao veículo
+    });
+
     return this.vehicleRepository.save(vehicle);
   }
 

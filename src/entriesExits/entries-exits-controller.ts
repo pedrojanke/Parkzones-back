@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {
   Body,
   Controller,
@@ -47,7 +48,7 @@ export class EntriesExitsController {
     return this.entriesExitsService.delete(id);
   }
 
-  @Get('active/:plate') // http://localhost:3000/entries-exits/active/(placa do carro), após fazer o GET vai puxar e atrelar o horário que foi feito o GET (exit_time) e calcular o valor.
+  @Get('active/:plate')
   async findActiveVehicleByPlate(@Param('plate') plate: string): Promise<any> {
     const vehicleEntry =
       await this.entriesExitsService.findActiveByPlate(plate);
@@ -67,10 +68,12 @@ export class EntriesExitsController {
       exit_time,
     );
 
+    // Usa a taxa do veículo para calcular o valor cobrado
     vehicleEntry.charged_amount =
       this.entriesExitsService.calculateChargedAmount(
         vehicleEntry.entry_time,
         exit_time,
+        vehicleEntry.vehicle, // Passa o veículo associado
       );
 
     // Atualiza o registro e retorna o valor
