@@ -1,4 +1,5 @@
-import { IsOptional, IsString, Length } from 'class-validator';
+/* eslint-disable prettier/prettier */
+import { IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
 
 export class UpdateVehicleDto {
   @IsOptional()
@@ -15,4 +16,7 @@ export class UpdateVehicleDto {
   @IsString()
   @Length(1, 256)
   color?: string;
+
+  @IsNotEmpty()
+  rate_id: string;
 }

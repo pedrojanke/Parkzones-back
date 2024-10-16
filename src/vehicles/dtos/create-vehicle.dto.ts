@@ -15,5 +15,5 @@ export class CreateVehicleDto {
   color: string;
 
   @IsNotEmpty()
-  rate_id: string; // Adicione o campo para o ID da taxa
+  rate_id: string;
 }

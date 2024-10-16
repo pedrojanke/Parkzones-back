@@ -18,23 +18,26 @@ export class VehiclesService {
   ) {}
 
   async create(createVehicleDto: CreateVehicleDto): Promise<Vehicle> {
+    if (!createVehicleDto.rate_id) {
+      throw new NotFoundException('Rate ID is required.');
+    }
+
     const rate = await this.rateRepository.findOne({
       where: { rate_id: createVehicleDto.rate_id },
     });
-
+  
     if (!rate) {
-      throw new NotFoundException(
-        `Rate with ID ${createVehicleDto.rate_id} not found`,
-      );
+      throw new NotFoundException(`Rate with ID ${createVehicleDto.rate_id} not found`);
     }
-
+  
     const vehicle = this.vehicleRepository.create({
       ...createVehicleDto,
-      rate, // Associa a taxa ao veículo
+      rate,
     });
-
+  
     return this.vehicleRepository.save(vehicle);
   }
+  
 
   async findAll(): Promise<Vehicle[]> {
     return this.vehicleRepository.find();
@@ -53,14 +56,28 @@ export class VehiclesService {
   }
 
   async update(
-    id: string,
-    updateVehicleDto: UpdateVehicleDto,
-  ): Promise<Vehicle> {
-    const vehicle = await this.findOne(id);
+  id: string,
+  updateVehicleDto: UpdateVehicleDto,
+): Promise<Vehicle> {
+  const vehicle = await this.findOne(id);
 
-    Object.assign(vehicle, updateVehicleDto);
-    return this.vehicleRepository.save(vehicle);
+  if (updateVehicleDto.rate_id) {
+    const rate = await this.rateRepository.findOne({
+      where: { rate_id: updateVehicleDto.rate_id },
+    });
+
+    if (!rate) {
+      throw new NotFoundException(`Rate with ID ${updateVehicleDto.rate_id} not found`);
+    }
+
+    vehicle.rate = rate;
+  } else {
+    throw new NotFoundException('Rate ID is required.');
   }
+
+  Object.assign(vehicle, updateVehicleDto);
+  return this.vehicleRepository.save(vehicle);
+}
 
   async delete(id: string): Promise<void> {
     const result = await this.vehicleRepository.delete(id);

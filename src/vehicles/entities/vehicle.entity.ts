@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { EntryExit } from 'src/entriesExits/entities/entry-exit.entity';
-import { Rate } from 'src/rates/entities/rate.entity'; // Importe Rate
+import { Rate } from 'src/rates/entities/rate.entity';
 import {
   Column,
   Entity,
@@ -23,8 +23,8 @@ export class Vehicle {
   @Column({ length: 256, nullable: false })
   color: string;
 
-  @ManyToOne(() => Rate, { eager: true }) // Adiciona a relação com Rate
-  rate: Rate; // Campo que referenciará a taxa
+  @ManyToOne(() => Rate, { eager: true }) 
+  rate: Rate;
 
   @OneToMany(() => EntryExit, (entryExit) => entryExit.vehicle)
   entryExits: EntryExit[];
