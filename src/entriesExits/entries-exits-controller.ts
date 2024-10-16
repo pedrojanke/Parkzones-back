@@ -59,7 +59,6 @@ export class EntriesExitsController {
       );
     }
 
-    // Captura o horário de saída automaticamente
     const exit_time = new Date();
     vehicleEntry.exit_time = exit_time;
 
@@ -68,15 +67,13 @@ export class EntriesExitsController {
       exit_time,
     );
 
-    // Usa a taxa do veículo para calcular o valor cobrado
     vehicleEntry.charged_amount =
       this.entriesExitsService.calculateChargedAmount(
         vehicleEntry.entry_time,
         exit_time,
-        vehicleEntry.vehicle, // Passa o veículo associado
+        vehicleEntry.vehicle,
       );
-
-    // Atualiza o registro e retorna o valor
+      
     await this.entriesExitsService.update(
       vehicleEntry.id_movement,
       vehicleEntry,
