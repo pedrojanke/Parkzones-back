@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {
   Body,
   Controller,
@@ -8,6 +9,7 @@ import {
   Put,
 } from '@nestjs/common';
 import { CreateUserDto } from './dtos/create-user.dto';
+import { LoginDto } from './dtos/login.dto';
 import { UserResponseDto } from './dtos/response-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { User } from './entities/user.entity';
@@ -49,8 +51,13 @@ export class UsersController {
     return this.usersService.delete(id);
   }
 
+  @Post('login')
+  async login(@Body() loginDto: LoginDto): Promise<UserResponseDto> {
+    const user = await this.usersService.login(loginDto);
+    return this.mapUserToResponse(user);
+  }
+
   private mapUserToResponse(user: User): UserResponseDto {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userResponse } = user;
     return userResponse as UserResponseDto;
   }
