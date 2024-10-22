@@ -19,4 +19,7 @@ export class UpdateEntryExitDto {
 
   @IsOptional()
   charged_amount?: number;
+
+  @IsOptional()
+  is_active?: boolean;
 }

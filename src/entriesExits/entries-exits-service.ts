@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as QRCode from 'qrcode';
 import { Vehicle } from 'src/vehicles/entities/vehicle.entity';
 import { Repository } from 'typeorm';
 import { CreateEntryExitDto } from './dtos/create-entry-exit.dto';
@@ -21,29 +22,39 @@ export class EntriesExitsService {
     const { vehicle_id, entry_time, exit_time } = createEntryExitDto;
 
     const vehicle = await this.vehicleRepository.findOneBy({
-        id_vehicle: vehicle_id,
+      id_vehicle: vehicle_id,
     });
     if (!vehicle) {
-        throw new NotFoundException('Vehicle not found');
+      throw new NotFoundException('Vehicle not found');
     }
 
     const currentEntryTime = entry_time || new Date();
 
     const entryExit = this.entryExitRepository.create({
-        vehicle,
-        entry_time: currentEntryTime,
-        exit_time,
-        duration_minutes: exit_time
-            ? this.calculateDuration(currentEntryTime, exit_time)
-            : null,
-        charged_amount: exit_time
-            ? this.calculateChargedAmount(currentEntryTime, exit_time, vehicle)
-            : null,
+      vehicle,
+      entry_time: currentEntryTime,
+      exit_time,
+      duration_minutes: exit_time
+        ? this.calculateDuration(currentEntryTime, exit_time)
+        : null,
+      charged_amount: exit_time
+        ? this.calculateChargedAmount(currentEntryTime, exit_time, vehicle)
+        : null,
     });
 
-    return this.entryExitRepository.save(entryExit);
-}
+    const savedEntryExit = await this.entryExitRepository.save(entryExit);
 
+    const qrCodeUrl = `http://localhost:3000/entries-exits/active/${vehicle.license_plate}`;
+
+    try {
+      const qrCode = await QRCode.toDataURL(qrCodeUrl);
+      savedEntryExit.qr_code = qrCode;
+    } catch (error) {
+      console.error('Erro ao gerar QR Code:', error);
+    }
+
+    return this.entryExitRepository.save(savedEntryExit);
+  }
 
   async findAll(): Promise<EntryExit[]> {
     return this.entryExitRepository.find({ relations: ['vehicle'] });
@@ -67,7 +78,7 @@ export class EntriesExitsService {
     updateEntryExitDto: UpdateEntryExitDto,
   ): Promise<EntryExit> {
     const entryExit = await this.findOne(id_movement);
-  
+
     Object.assign(entryExit, updateEntryExitDto);
 
     if (updateEntryExitDto.exit_time) {
@@ -79,13 +90,12 @@ export class EntriesExitsService {
       entryExit.charged_amount = this.calculateChargedAmount(
         entryExit.entry_time,
         updateEntryExitDto.exit_time,
-        entryExit.vehicle
+        entryExit.vehicle,
       );
     }
-  
+
     return this.entryExitRepository.save(entryExit);
   }
-  
 
   async delete(id_movement: string): Promise<void> {
     const result = await this.entryExitRepository.delete(id_movement);
@@ -117,6 +127,7 @@ export class EntriesExitsService {
       where: {
         exit_time: null,
         vehicle: { license_plate },
+        is_active: true,
       },
       relations: ['vehicle'],
     });

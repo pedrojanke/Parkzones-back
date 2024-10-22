@@ -58,6 +58,7 @@ export class UsersController {
   }
 
   private mapUserToResponse(user: User): UserResponseDto {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userResponse } = user;
     return userResponse as UserResponseDto;
   }
