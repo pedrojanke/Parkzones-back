@@ -81,4 +81,9 @@ export class EntriesExitsController {
 
     return { valorTotal: vehicleEntry.charged_amount };
   }
+
+  @Get('activeEntry/:licensePlate')
+  async findActiveByPlateForEntry(@Param('licensePlate') licensePlate: string): Promise<EntryExit | null> {
+    return this.entriesExitsService.findActiveByPlate(licensePlate);
+  }
 }

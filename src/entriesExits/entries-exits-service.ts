@@ -134,4 +134,13 @@ export class EntriesExitsService {
 
     return vehicleEntry || null;
   }
+
+  async findActiveByPlateByEntry(licensePlate: string): Promise<EntryExit | null> {
+    return this.entryExitRepository
+      .createQueryBuilder('entryExit')
+      .innerJoinAndSelect('entryExit.vehicle', 'vehicle')
+      .where('vehicle.license_plate = :licensePlate', { licensePlate })
+      .andWhere('entryExit.is_active = true')
+      .getOne();
+  }
 }
