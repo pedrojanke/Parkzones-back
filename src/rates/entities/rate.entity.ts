@@ -1,11 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity('Rates')
+@Entity("Rates")
 export class Rate {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   rate_id: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: false })
+  @Column({ type: "decimal", precision: 10, scale: 2, nullable: false })
   hourly_rate: number;
 
   @Column({ length: 50, nullable: false })

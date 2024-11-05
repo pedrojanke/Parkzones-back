@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as QRCode from 'qrcode';
@@ -132,10 +131,17 @@ export class EntriesExitsService {
       relations: ['vehicle'],
     });
 
+    if (vehicleEntry) {
+      vehicleEntry.is_active = false;
+      await this.entryExitRepository.save(vehicleEntry);
+    }
+
     return vehicleEntry || null;
   }
 
-  async findActiveByPlateByEntry(licensePlate: string): Promise<EntryExit | null> {
+  async findActiveByPlateByEntry(
+    licensePlate: string,
+  ): Promise<EntryExit | null> {
     return this.entryExitRepository
       .createQueryBuilder('entryExit')
       .innerJoinAndSelect('entryExit.vehicle', 'vehicle')

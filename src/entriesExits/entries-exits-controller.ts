@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import {
   Body,
   Controller,
@@ -73,7 +72,7 @@ export class EntriesExitsController {
         exit_time,
         vehicleEntry.vehicle,
       );
-      
+
     await this.entriesExitsService.update(
       vehicleEntry.id_movement,
       vehicleEntry,
@@ -83,7 +82,9 @@ export class EntriesExitsController {
   }
 
   @Get('activeEntry/:licensePlate')
-  async findActiveByPlateForEntry(@Param('licensePlate') licensePlate: string): Promise<EntryExit | null> {
-    return this.entriesExitsService.findActiveByPlate(licensePlate);
+  async findActiveByPlateForEntry(
+    @Param('licensePlate') licensePlate: string,
+  ): Promise<EntryExit | null> {
+    return this.entriesExitsService.findActiveByPlateByEntry(licensePlate);
   }
 }

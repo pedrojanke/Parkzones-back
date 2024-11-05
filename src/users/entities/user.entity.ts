@@ -1,9 +1,9 @@
-import { IsEmail } from 'class-validator';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { IsEmail } from "class-validator";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity('Users')
+@Entity("Users")
 export class User {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   user_id: string;
 
   @Column({ length: 256, nullable: false })
@@ -19,13 +19,13 @@ export class User {
   @Column({ length: 50, nullable: false })
   user_type: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   created_at: Date;
 
   @Column({
-    type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
+    type: "timestamp",
+    default: () => "CURRENT_TIMESTAMP",
+    onUpdate: "CURRENT_TIMESTAMP",
   })
   updated_at: Date;
 }

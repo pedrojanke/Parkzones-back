@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Rate } from 'src/rates/entities/rate.entity';
 import { Repository } from 'typeorm';
@@ -20,6 +20,14 @@ export class VehiclesService {
   async create(createVehicleDto: CreateVehicleDto): Promise<Vehicle> {
     if (!createVehicleDto.rate_id) {
       throw new NotFoundException('Rate ID is required.');
+    }
+
+    const existingVehicle = await this.vehicleRepository.findOne({
+      where: { license_plate: createVehicleDto.license_plate },
+    });
+  
+    if (existingVehicle) {
+      throw new ConflictException(`Vehicle with license plate ${createVehicleDto.license_plate} already exists.`);
     }
 
     const rate = await this.rateRepository.findOne({
