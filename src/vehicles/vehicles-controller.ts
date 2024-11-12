@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -35,6 +36,13 @@ export class VehiclesController {
     @Param("id") id: string,
     @Body() updateVehicleDto: UpdateVehicleDto,
   ) {
+    const isDuplicate = await this.vehiclesService.isLicensePlateDuplicate(
+      updateVehicleDto.license_plate,
+      id,
+    );
+    if (isDuplicate) {
+      throw new BadRequestException("Placa de veículo já cadastrada.");
+    }
     return this.vehiclesService.update(id, updateVehicleDto);
   }
 

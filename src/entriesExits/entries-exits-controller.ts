@@ -7,13 +7,13 @@ import {
   Param,
   Post,
   Put,
-} from '@nestjs/common';
-import { CreateEntryExitDto } from './dtos/create-entry-exit.dto';
-import { UpdateEntryExitDto } from './dtos/update-entry-exit.dto';
-import { EntryExit } from './entities/entry-exit.entity';
-import { EntriesExitsService } from './entries-exits-service';
+} from "@nestjs/common";
+import { CreateEntryExitDto } from "./dtos/create-entry-exit.dto";
+import { UpdateEntryExitDto } from "./dtos/update-entry-exit.dto";
+import { EntryExit } from "./entities/entry-exit.entity";
+import { EntriesExitsService } from "./entries-exits-service";
 
-@Controller('entries-exits')
+@Controller("entries-exits")
 export class EntriesExitsController {
   constructor(private readonly entriesExitsService: EntriesExitsService) {}
 
@@ -29,26 +29,26 @@ export class EntriesExitsController {
     return this.entriesExitsService.findAll();
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<EntryExit> {
+  @Get(":id")
+  async findOne(@Param("id") id: string): Promise<EntryExit> {
     return this.entriesExitsService.findOne(id);
   }
 
-  @Put(':id')
+  @Put(":id")
   async update(
-    @Param('id') id: string,
+    @Param("id") id: string,
     @Body() updateEntryExitDto: UpdateEntryExitDto,
   ): Promise<EntryExit> {
     return this.entriesExitsService.update(id, updateEntryExitDto);
   }
 
-  @Delete(':id')
-  async delete(@Param('id') id: string): Promise<void> {
+  @Delete(":id")
+  async delete(@Param("id") id: string): Promise<void> {
     return this.entriesExitsService.delete(id);
   }
 
-  @Get('active/:plate')
-  async findActiveVehicleByPlate(@Param('plate') plate: string): Promise<any> {
+  @Get("active/:plate")
+  async findActiveVehicleByPlate(@Param("plate") plate: string): Promise<any> {
     const vehicleEntry =
       await this.entriesExitsService.findActiveByPlate(plate);
 
@@ -81,9 +81,9 @@ export class EntriesExitsController {
     return { valorTotal: vehicleEntry.charged_amount };
   }
 
-  @Get('activeEntry/:licensePlate')
+  @Get("activeEntry/:licensePlate")
   async findActiveByPlateForEntry(
-    @Param('licensePlate') licensePlate: string,
+    @Param("licensePlate") licensePlate: string,
   ): Promise<EntryExit | null> {
     return this.entriesExitsService.findActiveByPlateByEntry(licensePlate);
   }

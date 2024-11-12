@@ -1,11 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import * as QRCode from 'qrcode';
-import { Vehicle } from 'src/vehicles/entities/vehicle.entity';
-import { Repository } from 'typeorm';
-import { CreateEntryExitDto } from './dtos/create-entry-exit.dto';
-import { UpdateEntryExitDto } from './dtos/update-entry-exit.dto';
-import { EntryExit } from './entities/entry-exit.entity';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import * as QRCode from "qrcode";
+import { Vehicle } from "src/vehicles/entities/vehicle.entity";
+import { Repository } from "typeorm";
+import { CreateEntryExitDto } from "./dtos/create-entry-exit.dto";
+import { UpdateEntryExitDto } from "./dtos/update-entry-exit.dto";
+import { EntryExit } from "./entities/entry-exit.entity";
 
 @Injectable()
 export class EntriesExitsService {
@@ -14,7 +18,7 @@ export class EntriesExitsService {
     private readonly entryExitRepository: Repository<EntryExit>,
 
     @InjectRepository(Vehicle)
-    private readonly vehicleRepository: Repository<Vehicle>,
+    private readonly vehicleRepository: Repository<Vehicle>
   ) {}
 
   async create(createEntryExitDto: CreateEntryExitDto): Promise<EntryExit> {
@@ -24,7 +28,12 @@ export class EntriesExitsService {
       id_vehicle: vehicle_id,
     });
     if (!vehicle) {
-      throw new NotFoundException('Vehicle not found');
+      throw new NotFoundException("Vehicle not found");
+    }
+
+    const activeEntry = await this.findActiveByPlate(vehicle.license_plate);
+    if (activeEntry) {
+      throw new BadRequestException("Este veículo já está no estacionamento.");
     }
 
     const currentEntryTime = entry_time || new Date();
@@ -39,30 +48,30 @@ export class EntriesExitsService {
       charged_amount: exit_time
         ? this.calculateChargedAmount(currentEntryTime, exit_time, vehicle)
         : null,
+      is_active: true,
     });
 
     const savedEntryExit = await this.entryExitRepository.save(entryExit);
 
     const qrCodeUrl = `http://localhost:3000/entries-exits/active/${vehicle.license_plate}`;
-
     try {
       const qrCode = await QRCode.toDataURL(qrCodeUrl);
       savedEntryExit.qr_code = qrCode;
     } catch (error) {
-      console.error('Erro ao gerar QR Code:', error);
+      console.error("Erro ao gerar QR Code:", error);
     }
 
     return this.entryExitRepository.save(savedEntryExit);
   }
 
   async findAll(): Promise<EntryExit[]> {
-    return this.entryExitRepository.find({ relations: ['vehicle'] });
+    return this.entryExitRepository.find({ relations: ["vehicle"] });
   }
 
   async findOne(id_movement: string): Promise<EntryExit> {
     const entryExit = await this.entryExitRepository.findOne({
       where: { id_movement },
-      relations: ['vehicle'],
+      relations: ["vehicle"],
     });
 
     if (!entryExit) {
@@ -74,9 +83,32 @@ export class EntriesExitsService {
 
   async update(
     id_movement: string,
-    updateEntryExitDto: UpdateEntryExitDto,
+    updateEntryExitDto: UpdateEntryExitDto
   ): Promise<EntryExit> {
     const entryExit = await this.findOne(id_movement);
+
+    if (
+      updateEntryExitDto.vehicle_id &&
+      updateEntryExitDto.vehicle_id !== entryExit.vehicle.id_vehicle
+    ) {
+      const newVehicle = await this.vehicleRepository.findOneBy({
+        id_vehicle: updateEntryExitDto.vehicle_id,
+      });
+
+      if (!newVehicle) {
+        throw new NotFoundException("Vehicle not found");
+      }
+
+      entryExit.vehicle = newVehicle;
+
+      const qrCodeUrl = `http://localhost:3000/entries-exits/active/${newVehicle.license_plate}`;
+
+      try {
+        entryExit.qr_code = await QRCode.toDataURL(qrCodeUrl);
+      } catch (error) {
+        console.error("Erro ao gerar QR Code:", error);
+      }
+    }
 
     Object.assign(entryExit, updateEntryExitDto);
 
@@ -91,6 +123,8 @@ export class EntriesExitsService {
         updateEntryExitDto.exit_time,
         entryExit.vehicle,
       );
+
+      entryExit.is_active = false;
     }
 
     return this.entryExitRepository.save(entryExit);
@@ -122,31 +156,23 @@ export class EntriesExitsService {
   }
 
   async findActiveByPlate(license_plate: string): Promise<EntryExit | null> {
-    const vehicleEntry = await this.entryExitRepository.findOne({
+    return this.entryExitRepository.findOne({
       where: {
-        exit_time: null,
         vehicle: { license_plate },
         is_active: true,
       },
-      relations: ['vehicle'],
+      relations: ["vehicle"],
     });
-
-    if (vehicleEntry) {
-      vehicleEntry.is_active = false;
-      await this.entryExitRepository.save(vehicleEntry);
-    }
-
-    return vehicleEntry || null;
   }
 
   async findActiveByPlateByEntry(
     licensePlate: string,
   ): Promise<EntryExit | null> {
     return this.entryExitRepository
-      .createQueryBuilder('entryExit')
-      .innerJoinAndSelect('entryExit.vehicle', 'vehicle')
-      .where('vehicle.license_plate = :licensePlate', { licensePlate })
-      .andWhere('entryExit.is_active = true')
+      .createQueryBuilder("entryExit")
+      .innerJoinAndSelect("entryExit.vehicle", "vehicle")
+      .where("vehicle.license_plate = :licensePlate", { licensePlate })
+      .andWhere("entryExit.is_active = true")
       .getOne();
   }
 }

@@ -1,6 +1,10 @@
-import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Not, Repository } from "typeorm";
 import { CreateRateDto } from "./dtos/create-rate.dto";
 import { UpdateRateDto } from "./dtos/update-rate.dto";
 import { Rate } from "./entities/rate.entity";
@@ -9,7 +13,7 @@ import { Rate } from "./entities/rate.entity";
 export class RatesService {
   constructor(
     @InjectRepository(Rate)
-    private readonly rateRepository: Repository<Rate>,
+    private readonly rateRepository: Repository<Rate>
   ) {}
 
   async create(createRateDto: CreateRateDto): Promise<Rate> {
@@ -19,9 +23,9 @@ export class RatesService {
 
     if (existingRate) {
       throw new ConflictException(
-        `Vehicle type ${createRateDto.vehicle_type} already exists.`,
+        `Vehicle type ${createRateDto.vehicle_type} already exists.`
       );
-    };
+    }
 
     const rate = this.rateRepository.create(createRateDto);
     return this.rateRepository.save(rate);
@@ -50,5 +54,18 @@ export class RatesService {
     if (result.affected === 0) {
       throw new NotFoundException(`Rate with ID ${id} not found`);
     }
+  }
+
+  async isVehicleTypeDuplicate(
+    vehicleType: string,
+    excludeId: string,
+  ): Promise<boolean> {
+    const rate = await this.rateRepository.findOne({
+      where: {
+        vehicle_type: vehicleType,
+        rate_id: Not(excludeId),
+      },
+    });
+    return !!rate;
   }
 }

@@ -2,7 +2,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Rate } from 'src/rates/entities/rate.entity';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { CreateVehicleDto } from './dtos/create-vehicle.dto';
 import { UpdateVehicleDto } from './dtos/update-vehicle.dto';
 import { Vehicle } from './entities/vehicle.entity';
@@ -93,5 +93,18 @@ export class VehiclesService {
     if (result.affected === 0) {
       throw new NotFoundException(`Vehicle with ID ${id} not found`);
     }
+  }
+
+  async isLicensePlateDuplicate(
+    licensePlate: string,
+    excludeId: string,
+  ): Promise<boolean> {
+    const vehicle = await this.vehicleRepository.findOne({
+      where: {
+        license_plate: licensePlate,
+        id_vehicle: Not(excludeId),
+      },
+    });
+    return !!vehicle;
   }
 }

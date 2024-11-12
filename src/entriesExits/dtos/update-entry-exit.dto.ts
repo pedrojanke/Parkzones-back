@@ -4,7 +4,7 @@ import { IsOptional, IsString } from "class-validator";
 export class UpdateEntryExitDto {
   @IsOptional()
   @IsString()
-  vehicleId?: string;
+  vehicle_id?: string;
 
   @IsOptional()
   @Type(() => Date)

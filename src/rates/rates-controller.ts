@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -32,6 +33,13 @@ export class RatesController {
 
   @Patch(":id")
   async update(@Param("id") id: string, @Body() updateRateDto: UpdateRateDto) {
+    const isDuplicate = await this.ratesService.isVehicleTypeDuplicate(
+      updateRateDto.vehicle_type,
+      id,
+    );
+    if (isDuplicate) {
+      throw new BadRequestException("Tipo de veículo já cadastrado.");
+    }
     return this.ratesService.update(id, updateRateDto);
   }
 
