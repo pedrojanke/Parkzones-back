@@ -1,12 +1,17 @@
 /* eslint-disable prettier/prettier */
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CreateUserDto } from './dtos/create-user.dto';
-import { UpdateUserDto } from './dtos/update-user.dto';
-import { User } from './entities/user.entity';
-import * as bcrypt from 'bcrypt';
-import { LoginDto } from './dtos/login.dto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import * as bcrypt from "bcrypt";
+import { Repository } from "typeorm";
+import { CreateUserDto } from "./dtos/create-user.dto";
+import { LoginDto } from "./dtos/login.dto";
+import { UpdateUserDto } from "./dtos/update-user.dto";
+import { User } from "./entities/user.entity";
 
 @Injectable()
 export class UsersService {
@@ -15,8 +20,44 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
+  private async validatePassword(password: string): Promise<void> {
+    const minLength = 8;
+    const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
+  
+    if (password.length < minLength) {
+      throw new BadRequestException("A senha deve ter no mínimo 8 caracteres.");
+    }
+  
+    if (!specialCharRegex.test(password)) {
+      throw new BadRequestException(
+        "A senha deve conter ao menos um caractere especial."
+      );
+    }
+  
+    if (await this.isWeakPassword(password)) {
+      throw new BadRequestException(
+        "A senha escolhida é considerada fraca. Escolha outra senha."
+      );
+    }
+  }
+
+  private async isWeakPassword(password: string): Promise<boolean> {
+    const weakPasswords = [
+      "12345678",
+      "password",
+      "123456789",
+      "qwerty",
+      "senha123",
+      "abcdefg",
+      "1234abcd",
+    ];
+    return weakPasswords.includes(password);
+  }
+
   async create(createUserDto: CreateUserDto): Promise<User> {
     const { password } = createUserDto;
+
+    await this.validatePassword(password);
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -46,6 +87,7 @@ export class UsersService {
     Object.assign(user, updateUserDto);
 
     if (updateUserDto.password) {
+      await this.validatePassword(updateUserDto.password);
       user.password = await bcrypt.hash(updateUserDto.password, 10);
     }
 
@@ -64,12 +106,12 @@ export class UsersService {
 
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
-      throw new NotFoundException('Usuário não encontrado');
+      throw new NotFoundException("Usuário não encontrado");
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      throw new UnauthorizedException('Credenciais inválidas');
+      throw new UnauthorizedException("Credenciais inválidas");
     }
 
     return user;
