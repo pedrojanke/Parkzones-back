@@ -8,6 +8,6 @@ async function bootstrap() {
   // Habilitar CORS
   app.enableCors(); // Isso permite que seu frontend se comunique com o backend
 
-  await app.listen(3000);
+  await app.listen(process.env.PORT ||3000);
 }
 bootstrap();
