@@ -13,14 +13,13 @@ import { VehiclesModule } from './vehicles/vehicles-module';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: '@1@senac2021',
-      database: 'parkzones',
+      type: process.env.DATABASE_TYPE as any,
+      url: process.env.DATABASE_URL,
       entities: [Rate, User, EntryExit, Vehicle],
       synchronize: true,
+      ssl: {
+        rejectUnauthorized: false
+      }
     }),
     VehiclesModule,
     EntriesExitsModule,
